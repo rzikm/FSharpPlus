@@ -1,5 +1,13 @@
 namespace FSharpPlus.Internals
 
+#if TEST_TRACE
+module Traces =
+    let private effects = ResizeArray<string> []
+    let reset () = effects.Clear ()
+    let add x = effects.Add (x)
+    let get () = effects |> Seq.toList
+#endif
+
 /// <namespacedoc>
 /// <summary>
 /// Internal to the library - please ignore
@@ -29,16 +37,6 @@ module internal Prelude =
     #else
         unbox<'U> x
     #endif
-
-    let inline tuple1<'t> (x: 't) =
-        #if FABLE_COMPILER
-        let t = ((),(),(),(),(),(),(),x)
-        t.Rest
-        #else
-        System.Tuple<_> x
-        #endif
-
-    let inline valueTuple1<'T1> (t1: 'T1) = ValueTuple.Create t1
 
 [<RequireQualifiedAccess>]
 module internal Implicit = let inline Invoke (x: ^t) = ((^R or ^t) : (static member op_Implicit : ^t -> ^R) x) : ^R
@@ -116,6 +114,12 @@ type Either<'t,'u> =
     | Right of 'u
 
 type DmStruct = struct end
+
+type KeyValuePair2<'TKey, 'TValue> = struct
+    val Key : 'TKey
+    val Value : 'TValue
+    new (key, value) = { Key = key; Value = value }
+end
 
 [<Sealed>]
 type Set2<'T when 'T: comparison >() = class end
@@ -322,7 +326,7 @@ type BitConverter =
         if isNull value then nullArg "value"
         BitConverter.ToString (value, startIndex, value.Length - startIndex)
 
-#if !FABLE_COMPILER || FABLE_COMPILER_3
+#if (!FABLE_COMPILER || FABLE_COMPILER_3) && !FABLE_COMPILER_4
 // findSliceIndex
 module FindSliceIndex =
     open System.Collections.Generic

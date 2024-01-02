@@ -6,13 +6,13 @@ open System.Threading.Tasks
 
 open FSharpPlus
 open FSharpPlus.Internals
-
+#if !FABLE_COMPILER4
 
 // Comonad class ----------------------------------------------------------
 
 type Extract =
     static member        Extract (x: Async<'T>    ) =
-    #if FABLE_COMPILER_3
+    #if FABLE_COMPILER_3 || FABLE_COMPILER_4
         Async.RunSynchronously x
     #else
         Async.StartImmediateAsTask(x).Result
@@ -29,7 +29,7 @@ type Extract =
     #if !FABLE_COMPILER
     static member        Extract (f: Task<'T>     ) = f.Result
     #endif
-    #if NETSTANDARD2_1 && !FABLE_COMPILER
+    #if !NET45 && !NETSTANDARD2_0 && !FABLE_COMPILER
     static member        Extract (f: ValueTask<'T>     ) = f.Result
     #endif
     static member inline Invoke (x: '``Comonad<'T>``) : 'T =
@@ -66,7 +66,7 @@ type Extend =
                 tcs.Task
     #endif
 
-    #if NETSTANDARD2_1 && !FABLE_COMPILER
+    #if (!NET45 && !NETSTANDARD2_0) && !FABLE_COMPILER
     static member        (=>>) (g: ValueTask<'T>     , f: ValueTask<'T> -> 'U ) : ValueTask<'U> =
         if g.IsCompletedSuccessfully then
             try
@@ -119,4 +119,5 @@ type Duplicate =
         let inline call (mthd: ^M, source: ^I, _output: ^R) = ((^M or ^I or ^R) : (static member Duplicate : _*_ -> _) source, mthd)
         call (Unchecked.defaultof<Duplicate>, x, Unchecked.defaultof<'``Comonad<'Comonad<'T>>``>)
 
+#endif
 #endif

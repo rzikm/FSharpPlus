@@ -158,7 +158,7 @@ let monadTransformers = testList "MonadTransformers" [
     #endif
     ]
 
-#if !FABLE_COMPILER || FABLE_COMPILER_3
+#if (!FABLE_COMPILER || FABLE_COMPILER_3) && !FABLE_COMPILER_4
 module ProfunctorDefaults =
     type Fun<'T,'U> = Fun of ('T -> 'U) with
         static member Dimap ((Fun f): Fun<'B,'C>, g: 'A->'B, h:'C->'D) = Fun (g >> f >> h)
@@ -169,7 +169,7 @@ module ProfunctorDefaults =
     ()
 #endif
 
-#if !FABLE_COMPILER || FABLE_COMPILER_3
+#if (!FABLE_COMPILER || FABLE_COMPILER_3) && !FABLE_COMPILER_4
 module BifunctorDefaults =
     type Tup<'a,'b> = Tup of ('a * 'b) with
         static member Bimap (Tup (a, b), f, g) = Tup (f a, g b)
@@ -180,7 +180,7 @@ module BifunctorDefaults =
     ()
 #endif
 
-#if !FABLE_COMPILER || FABLE_COMPILER_3
+#if (!FABLE_COMPILER || FABLE_COMPILER_3) && !FABLE_COMPILER_4
 type StringCodec<'t> = StringCodec of ReaderT<string, Result<'t,string>> * ('t -> Const<string, unit>) with
     static member Invmap (StringCodec (d, e), f: 'T -> 'U, g: 'U -> 'T) = StringCodec (map f d, contramap g e)
 module StringCodec =
@@ -189,7 +189,7 @@ module StringCodec =
 #endif
 
 let invariant = testList "Invariant" [
-#if !FABLE_COMPILER || FABLE_COMPILER_3
+#if (!FABLE_COMPILER || FABLE_COMPILER_3) && !FABLE_COMPILER_4
     testCase "testStringToIntDerivedFromFloat" (fun () ->
         let floatCodec = StringCodec (ReaderT (tryParse >> Option.toResultWith "Parse error"), string<float> >> Const)
         let floatParsed  = StringCodec.decode floatCodec "1.8"
@@ -234,7 +234,7 @@ let bitConverter = testList "BitConverter" [
 
 let curry = testList "Curry" [
 
-#if !FABLE_COMPILER || FABLE_COMPILER_3
+#if (!FABLE_COMPILER || FABLE_COMPILER_3) && !FABLE_COMPILER_4
     testCase "curryTest" (fun () ->
     
         #if !FABLE_COMPILER
@@ -270,7 +270,7 @@ let curry = testList "Curry" [
         ())
 #endif
 
-#if !FABLE_COMPILER || FABLE_COMPILER_3
+#if (!FABLE_COMPILER || FABLE_COMPILER_3) && !FABLE_COMPILER_4
     testCase "uncurryTest" (fun () ->
         let g2  x y   = [x + y]
         let g3  x y z = [x + y + z]
@@ -311,7 +311,7 @@ let memoization = testList "Memoization" [
 
         let f x                       = printfn "calculating"; effs.Add "f"; string x
         let g x (y:string) z : uint32 = printfn "calculating"; effs.Add "g"; uint32 (x * int y + int z)
-        let h x y z                   = printfn "calculating"; effs.Add "h"; new System.DateTime (x, y, z)
+        let h (x: int) (y: int) (z: int) = printfn "calculating"; effs.Add "h"; new System.DateTime (x, y, z)
         let sum2 (a:int)       = printfn "calculating"; effs.Add "sum2"; (+) a
         let sum3 a (b:int) c   = printfn "calculating"; effs.Add "sum3"; a + b + c
         let sum4 a b c d : int = printfn "calculating"; effs.Add "sum4"; a + b + c + d
